@@ -1,4 +1,4 @@
-Example of a planning spec for HCI 584 based on the local earthquake activity app described in sketch.md
+Weather Forecast Dashboard Using Python
 
 General description of the project (2 pts)
 start with your sketch and enhance it.
