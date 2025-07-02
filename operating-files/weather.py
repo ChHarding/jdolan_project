@@ -3,32 +3,27 @@
 import argparse
 import requests
 import sys
+from utility import get_coordinates
 
-def get_coordinates(city_name):
-    geo_url = "https://geocoding-api.open-meteo.com/v1/search"
-    params = {"name": city_name, "count": 1, "language": "en", "format": "json"}
-    response = requests.get(geo_url, params=params)
-    if response.status_code != 200:
-        sys.exit("Error: Could not fetch geolocation.")
-    data = response.json()
-    if not data.get("results"):
-        sys.exit(f"Location not found: {city_name}")
-    loc = data["results"][0]
-    return loc["latitude"], loc["longitude"], loc["name"]
 
 def get_weather(latitude, longitude):
     weather_url = "https://api.open-meteo.com/v1/forecast"
     params = {
         "latitude": latitude,
         "longitude": longitude,
-        "current": "temperature_2m,is_day,precipitation,wind_speed_10m,wind_direction_10m,weathercode,uv_index,time",
+        "current_weather": True,
+        "hourly": "temperature_2m,is_day,precipitation,wind_speed_10m,wind_direction_10m,weathercode,uv_index,time",
         "temperature_unit": "fahrenheit",
         "timezone": "auto"
     }
     response = requests.get(weather_url, params=params)
     if response.status_code != 200:
         sys.exit("Error: Could not fetch weather data.")
-    return response.json()["current"]
+    return response.json()["current_weather"]  #made a change here based on your suggestion
+    print(response.json() ["hourly"])
+    return response.json()["hourly"] #also implemented this per your suggestion
+
+
 
 def format_weather(city, current):
     temp = current["temperature_2m"]

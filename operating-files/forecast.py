@@ -5,7 +5,9 @@ import requests
 import sys
 import pip
 from datetime import datetime
-from pip import tabulate
+from utility import get_coordinates
+#from pip import tabulate #previously had this, not going to completely remove the line but it doesn't seem to function 
+
 
 def get_coordinates(city_name):
     geo_url = "https://geocoding-api.open-meteo.com/v1/search"
