@@ -3,12 +3,9 @@
 import argparse
 import requests
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from statistics import mean
-from datetime import timedelta
 from utility import get_coordinates
-
-
 
 def get_month_dates(month_name, year):
     try:
@@ -56,22 +53,29 @@ def summarize_monthly_data(data):
     }
 
 def main():
-    from datetime import timedelta
+    # --- Production argument parsing (keep for later) ---
+    # parser = argparse.ArgumentParser(description="Get historical weather trends by month and year.")
+    # parser.add_argument("--location", required=True, help="City name (e.g. 'Seattle')")
+    # parser.add_argument("--month", required=True, help="Month name (e.g. 'May')")
+    # parser.add_argument("--years", type=int, default=3, help="Number of years to go back (default 3)")
+    # args = parser.parse_args()
+    # location = args.location
+    # month = args.month
+    # years = args.years
 
-    parser = argparse.ArgumentParser(description="Get historical weather trends by month and year.")
-    parser.add_argument("--location", required=True, help="City name (e.g. 'Seattle')")
-    parser.add_argument("--month", required=True, help="Month name (e.g. 'May')")
-    parser.add_argument("--years", type=int, default=3, help="Number of years to go back (default 3)")
-    args = parser.parse_args()
+    # --- Hardcoded testing mode ---
+    location = "Orem"
+    month = "May"
+    years = 3
 
-    lat, lon, city_display = get_coordinates(args.location)
+    lat, lon, city_display = get_coordinates(location)
 
-    print(f"\nHistorical Weather in {city_display} for {args.month.title()} (last {args.years} years):\n")
+    print(f"\nHistorical Weather in {city_display} for {month.title()} (last {years} years):\n")
 
     current_year = datetime.now().year
-    for offset in range(args.years):
+    for offset in range(years):
         year = current_year - offset - 1  # Exclude current year as it may be incomplete
-        start, end = get_month_dates(args.month, year)
+        start, end = get_month_dates(month, year)
         data = get_historical_weather(lat, lon, start, end)
         summary = summarize_monthly_data(data)
 
