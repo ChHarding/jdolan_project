@@ -1,3 +1,8 @@
+import requests
+import argparse
+import sys
+from datetime import datetime
+
 def get_coordinates(city_name):
     geo_url = "https://geocoding-api.open-meteo.com/v1/search"
     params = {"name": city_name, "count": 1, "language": "en", "format": "json"}
