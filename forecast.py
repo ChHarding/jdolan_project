@@ -21,6 +21,12 @@ def get_forecast_weather(lat, lon, days=7):
         sys.exit("Error fetching forecast data.")
     return response.json()["daily"]
 
+def get_forecast_summary(location="Orem"): #New in V2 report A to help with the Streamlit App
+    from utility import get_coordinates
+    lat, lon, city_display = get_coordinates(location)
+    data = get_forecast_weather(lat, lon)
+    return format_forecast(data, city_display)
+
 def format_forecast(data, city_display):
     forecast_output = f"\n7-Day Forecast for {city_display}:\n"
     for date, t_max, t_min, rain in zip(data["time"], data["temperature_2m_max"], data["temperature_2m_min"], data["precipitation_sum"]):

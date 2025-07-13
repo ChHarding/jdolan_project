@@ -52,6 +52,23 @@ def summarize_monthly_data(data):
         "temp_range": f"{min_temp}°F – {max_temp}°F"
     }
 
+def get_history_summary(location="Orem", month="May", years=3): #New to V2 report A for Streamlit App
+    from utility import get_coordinates
+    from datetime import datetime
+
+    lat, lon, city_display = get_coordinates(location)
+    current_year = datetime.now().year
+    history = []
+
+    for offset in range(years):
+        year = current_year - offset - 1
+        start, end = get_month_dates(month, year)
+        data = get_historical_weather(lat, lon, start, end)
+        summary = summarize_monthly_data(data)
+        history.append((year, summary))
+
+    return city_display, month, history
+
 def main():
     # --- Production argument parsing (keep for later) ---
     # parser = argparse.ArgumentParser(description="Get historical weather trends by month and year.")
