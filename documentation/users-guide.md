@@ -49,10 +49,6 @@ Displays the latest weather conditions (temperature, windspeed, and description)
 	•	⚠️ Currently hardcoded to Orem, UT
 	•	🌡 Outputs are in Fahrenheit
 
-Screenshot:
-<img width="1898" height="940" alt="image" src="https://github.com/user-attachments/assets/bc02a0d0-d231-42bb-9c6c-2e2a7a3e0a41" />
-
-
 ⸻
 
 2. Forecast
@@ -62,9 +58,6 @@ Shows a line chart and daily data table for the next 7–16 days.
 	•	🧭 Location is fixed to Orem for now
 	•	📈 Hover on graph points to view exact temps
 
-Screenshot:
-<img width="1917" height="953" alt="image" src="https://github.com/user-attachments/assets/0606cc2c-b7d3-40a0-adf3-9215772ad4da" />
-
 ⸻
 
 3. Historical Data
@@ -73,10 +66,6 @@ Explore average high/low temperatures for any month, across up to 20 years of da
 	•	📆 Select the month
 	•	🔢 Adjust the number of years (1–20)
 	•	📊 View a graph of temperature trends
-
-Screenshot:
-<img width="850" height="937" alt="image" src="https://github.com/user-attachments/assets/163fddf8-613d-423b-ae85-1ce4fbfbc265" />
-
 
 ⸻
 
