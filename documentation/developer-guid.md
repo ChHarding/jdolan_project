@@ -1,112 +1,127 @@
-Project Title: WeatherWise — Your Personal Weather Dashboard
+# WeatherWise Developer Guide
 
-WeatherWise is a simple yet powerful desktop application designed to bring real-time weather forecasting and historical weather data directly to your screen. Built with Python and powered by the Open-Meteo API, this app makes weather tracking both accessible and user-friendly—even for those who aren’t particularly tech-savvy.
+## Overview
 
-The primary goal of this project is to deliver an intuitive interface for viewing current weather, hourly and daily forecasts, and historical climate trends in any location worldwide. Users will be able to input a city or coordinates, and the application will display up-to-date information like temperature, precipitation, wind speed, and even UV index. For weather enthusiasts and casual users alike, this tool provides everything needed to plan their day—or week—accordingly.
+**WeatherWise** is a weather dashboard built using [Streamlit](https://streamlit.io) and the [Open-Meteo API](https://open-meteo.com/). It allows users to view current, forecasted, and historical weather data for a selected location, displayed in both tabular and graphical formats.
 
-In version 1, WeatherWise will be developed as a Command Line Interface (CLI) tool, allowing users to enter commands like weather --location "New York" or forecast --days 5 --location "Los Angeles". It will fetch data from the Open-Meteo API and output clean, human-readable summaries in the terminal. This minimal version ensures rapid development and testing without needing to design a user interface initially.
+This developer guide is intended for contributors or maintainers who are taking over the codebase. It assumes you’ve already read the User’s Guide and have the project running locally.
 
-Eventually, the application will evolve into a full-featured desktop GUI using Python’s tkinter library, providing a clickable interface with maps, charts, and forecast timelines. For a more modern experience, a web version may be considered, using Flask as the backend and a lightweight frontend framework such as Streamlit or plain HTML/CSS templates enhanced with Bootstrap for responsiveness and design consistency.
+---
 
-WeatherWise will rely on external mechanisms such as RESTful API calls to Open-Meteo, JSON parsing, and optional email integration for daily weather summaries. With the flexibility of Python and the robustness of open weather APIs, this app aims to be both a practical daily tool and a stepping stone into more advanced data visualization projects.
+## Final Specs vs Original Plan
 
-Vignettes
+| Feature                    | Planned | Implemented |
+|---------------------------|---------|-------------|
+| Current Weather Data      | ✅      | ✅          |
+| Forecast Weather Graph    | ✅      | ✅          |
+| Historical Data (monthly) | ✅      | ✅          |
+| Location Selector         | ✅      | 🔜 (default is hardcoded) |
+| Unit Toggle (F/C)         | ✅      | 🔜 (Fahrenheit default only) |
 
-⸻
+---
 
-Vignette 1: Checking Today’s Weather
+## Install / Deployment / Admin Notes
 
-Maria opens her laptop and wants to know if she should bring an umbrella before leaving for work. She opens the terminal and types:
+### Requirements
 
-weather --location "Chicago"
+- Python 3.10+
+- Streamlit
+- Pandas
+- Altair
+- Requests
 
-Within seconds, the app responds with a summary: “Today in Chicago: 67°F, light rain, winds 10 mph NE. UV index: 4. Carry an umbrella just in case.” Satisfied, she grabs her umbrella and heads out the door.
+Install dependencies via:
 
-Technical Details: • User inputs a location as a string (city or coordinates). • The system sends a request to the Open-Meteo API /forecast endpoint with current weather data parameters. • JSON data is parsed and formatted for clean CLI display. • Future GUI version will show weather in cards with icons and background illustrations. • Geolocation logic will later be added to allow for default location detection.
+```bash
+pip install -r requirements.txt
 
-⸻
+Run the app with:
 
-Vignette 2: Viewing a 7-Day Forecast
+streamlit run main-dashboard.py
 
-Later in the evening, Maria wants to plan a weekend hike. She types:
+API Access
 
-forecast --location "Denver" --days 7
-
-A simple table appears in the terminal showing daily high/low temperatures, precipitation chances, and wind speeds for the next week. She sees sunny skies ahead and confirms her plans.
-
-Technical Details: • CLI command triggers API call to Open-Meteo’s 7-day forecast endpoint. • Daily data is looped through and formatted as a simple table in terminal output. • Units (Fahrenheit/Celsius, MPH/KPH) configurable via optional flag. • Future GUI version will use line graphs or scrollable cards for day-by-day forecast. • Backend caching can be added to reduce repeated API calls for same location.
-
-⸻
-
-Vignette 3: Checking Historical Weather Trends
-
-Carlos is a data nerd planning a garden. He wants to know how rainy May was in his city over the past 3 years. He enters:
-
-history --location "Seattle" --month "May" --years 3
-
-The app returns average rainfall, number of rainy days, and temperature ranges for each year. He compares and starts planning the perfect planting schedule.
-
-Technical Details: • Command queries Open-Meteo’s historical weather data endpoints. • App calculates averages and displays basic stats for comparison. • Requires date parsing and possibly multiple requests (for each year). • Future versions could offer CSV export or basic charts. • CLI version outputs plain text, GUI might show bar charts or plots.
-
-Revision:Removed_Vignettes_4&5
-
-Technical Flow
-
-Here’s a technical data flow breakdown and early architecture draft for WeatherWise, including a flow description in words, modular component breakdowns, and data types. This will help bridge the gap from user task → code structure.
+The app uses Open-Meteo’s free, no-auth APIs for current, forecast, and historical weather data. No API key is required.
 
 ⸻
 
-🌩️ WeatherWise: Technical Flow Overview
+Code Structure and Flow
 
-🔁 Data Flow Summary 1. User Input (CLI) → Location and command-line flags (--location, --days, --subscribe, etc.) 2. Input Parser → Parses command line input and calls corresponding function 3. Weather Query Manager → Sends request to appropriate Open-Meteo API endpoint → Waits for JSON response 4. Response Handler → Validates and extracts required fields → Converts raw JSON into Python dicts/lists with clean structure 5. Output Formatter → Takes clean data and prints it to CLI (or returns it to GUI module later) → Optionally generates and sends emails or desktop alerts
+Main Script: main-dashboard.py
 
-⸻
+The main entry point. It presents a sidebar with screen navigation:
 
-🧱 Modules and Responsibilities
+screen = st.sidebar.radio("Choose a screen:", ["Current Weather", "Forecast", "Historical Data"])
 
-Module / Class Name Purpose Key Methods Input / Output Types CLIInputHandler Parses and validates user commands parse_args(), validate() sys.argv[] → Python dict WeatherAPIClient Handles API requests to Open-Meteo get_current(), get_forecast(), get_history() Input: dict / Output: JSON DataParser Cleans and processes raw JSON extract_current(), format_forecast() Input: JSON → dict/list OutputManager Formats and displays CLI text print_summary(), print_forecast_table() Input: dict/list → string SubscriptionManager Handles email subscriptions add_subscriber(), send_daily_email() Input: email/location → logs/email AlertSystem Triggers desktop alerts on conditions monitor_conditions(), push_alert() Input: forecast dict → system notification Scheduler Sets up timed jobs for emails or alerts schedule_email() Input: user settings → job object
+Depending on the selected screen, it calls different modules:
+	•	"Current Weather" → uses weather.py
+	•	"Forecast" → uses forecast.py
+	•	"Historical Data" → uses weather_history.py
 
-⸻
+Module Overview
 
-🧭 Data Flow (Sequential Description)
+weather.py
+	•	get_current_weather(location: str)
+	•	Makes a request to Open-Meteo’s current weather endpoint.
+	•	Returns a summary dictionary of temperature, wind, and weather code.
 
-[User Input] ↓ (e.g. "forecast --location Denver --days 5")
+forecast.py
+	•	get_forecast(location: str, days: int)
+	•	Converts a city name to lat/lon using Open-Meteo’s geocoding API.
+	•	Gets forecasted temperature data for a given number of days.
+	•	Graphs the data using Altair.
+	•	Handles date parsing and formatting for the X-axis.
 
-→ [CLIInputHandler] ↓ (Parsed arguments: {"command": "forecast", "location": "Denver", "days": 5})
-
-→ [WeatherAPIClient] ↓ (GET request to Open-Meteo /forecast?location=Denver&days=5) ↓ (JSON response: raw weather data)
-
-→ [DataParser] ↓ (Extracts fields: {"daily": [{"day": "Mon", "temp": 72, ...}, ...]})
-
-→ [OutputManager] ↓ (Formats forecast summary table)
-
-→ [CLI Output] ↓ (User sees 7-day forecast in terminal)
-
-[Optionally…] → [SubscriptionManager] (if user subscribed) ↓ [Scheduler] ↓ [send_daily_email()] via SendGrid or SMTP
-
-→ [AlertSystem] (if user enabled alerts) ↓ (Checks hourly data for thresholds) ↓ (Sends desktop push if needed)
-
-⸻
-
-🔧 Sample Class Sketch (Python / OOP-Style Pseudocode)
-
-class WeatherAPIClient: def init(self, base_url): self.base_url = base_url
-
-def get_forecast(self, location, days=7):
-    params = {"latitude": ..., "longitude": ..., "daily": "..."}
-    response = requests.get(self.base_url + "/forecast", params=params)
-    return response.json()
-class DataParser: def parse_forecast(self, json_data): daily_data = json_data.get("daily", []) return [{"day": d["date"], "high": d["temp_max"], "low": d["temp_min"]} for d in daily_data]
-
-class OutputManager: def print_forecast_table(self, forecast_list): for day in forecast_list: print(f"{day['day']}: {day['high']}° / {day['low']}°")
-
-Main controller flow
-cli_args = CLIInputHandler().parse_args() api_client = WeatherAPIClient(BASE_URL) data = api_client.get_forecast(cli_args["location"], cli_args["days"]) parsed_data = DataParser().parse_forecast(data) OutputManager().print_forecast_table(parsed_data)
+weather_history.py
+	•	get_history_summary(location: str, month: str, num_years: int)
+	•	Fetches historical weather data for a selected month across multiple past years.
+	•	Returns structured data used to create line graphs of temp highs/lows.
 
 ⸻
 
-📄 Data Types in Flow
+UX Flow Summary
+	•	Sidebar navigation allows switching between views.
+	•	Each view has a clearly labeled st.title().
+	•	The Forecast and Historical Data views use:
+	•	st.slider() and st.selectbox() for user input.
+	•	st.altair_chart() to visualize data.
+	•	st.dataframe() to show tabular data.
 
-Step Data Type User input str from sys.argv[] Parsed args dict API response JSON → dict Parsed weather data list[dict] CLI table output str Email payload str or HTML Scheduled job function reference / job ID Desktop alert OS call (string + icon)
+⸻
 
+Known Issues
 
+Minor
+	•	❗ Tooltip for Altair chart in historical data uses raw strings ('year') which may display strangely unless explicitly cast/formatted.
+	•	❗ No ability to switch between Fahrenheit and Celsius.
+
+Major
+	•	⚠️ Currently hardcoded to "Orem" as location for all data.
+	•	Workaround: Modify function calls to include st.text_input() or location lookup logic.
+
+⸻
+
+Inefficiencies
+	•	Historical data is fetched year-by-year via separate API calls — this may be slow for large year ranges.
+	•	Open-Meteo limits temporal resolution; no hourly breakdown for historical data.
+	•	No caching or memoization — reloading a screen re-fetches data each time.
+
+⸻
+
+Future Work
+	•	🌎 Add full location search and validation (via geocoding API).
+	•	🌡 Toggle for Celsius vs Fahrenheit.
+	•	📆 Option to view daily historical temperatures rather than monthly summaries.
+	•	📊 Overlay precipitation data on temperature graphs.
+	•	💾 Add caching for repeated location queries.
+	•	📱 Optimize layout for mobile/tablet views.
+	•	🧠 Consider implementing local data storage or offline capabilities for demo purposes.
+
+⸻
+
+Quick Start for New Developers
+	1.	Clone the repo.
+	2.	Run pip install -r requirements.txt.
+	3.	Launch the app via streamlit run main-dashboard.py.
+	4.	Explore each screen to understand flow.
+	5.	View module code (weather.py, forecast.py, weather_history.py) to understand API structure.
