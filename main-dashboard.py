@@ -6,9 +6,9 @@ import requests
 import argparse
 import sys
 from datetime import datetime
-import weather
-import weather_history
-import forecast
+from all_operating_files import weather
+from all_operating_files import weather_history
+from all_operating_files import forecast
 import altair as alt
 
 # Sidebar navigation
@@ -124,18 +124,17 @@ elif screen == "Historical Data":
     records = []
     for year, data in history:
         records.append({
-            "year": year,
-            "avg_rainfall": data["avg_rainfall"],
-            "rainy_days": data["rainy_days"],
-            "temp_low": data["temp_range"][0],
-            "temp_high": data["temp_range"][1],
+        "year": year,
+        "avg_rainfall": data["avg_rainfall"],
+        "rainy_days": data["rainy_days"],
+        "temp_low": data["min_temp"],
+        "temp_high": data["max_temp"],
         })
+
 
     
     df_hist = pd.DataFrame(records)
-    st.write(df_hist.dtypes)
-    df_hist["temp_high"] = pd.to_numeric(df_hist["temp_high"], errors="coerce")
-    df_hist["temp_low"] = pd.to_numeric(df_hist["temp_low"], errors="coerce")
+
 
     # Show raw data
     st.dataframe(df_hist)
@@ -147,7 +146,14 @@ elif screen == "Historical Data":
 
     chart = alt.Chart(df_long).mark_line(point=True).encode(
         x=alt.X('year:O', title="Year"),
-        y=alt.Y('Temperature:Q', title="°F"),
+        y=alt.Y(
+            'Temperature:Q',
+            title="°F",
+            axis=alt.Axis(
+                format='.0f',
+                labelExpr="datum.value + '°F'"
+            )
+        ),
         color=alt.Color('Temperature Type:N', title="Temperature"),
         tooltip=["year", "Temperature Type", "Temperature"]
     ).properties(

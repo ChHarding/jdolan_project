@@ -3,7 +3,7 @@
 import argparse
 import requests
 import sys
-from utility import get_coordinates
+from all_operating_files.utility import get_coordinates
 
 def get_forecast_weather(lat, lon, days=7):
     url = "https://api.open-meteo.com/v1/forecast"
