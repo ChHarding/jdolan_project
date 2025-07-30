@@ -1,9 +1,3 @@
-Here is a complete README.md file written as a User’s Guide for your weather dashboard app, designed according to your assignment instructions. It focuses on helping a non-technical user get the app running and understand how to use it step-by-step.
-
-⸻
-
-
-
 # 🌦 WeatherWise
 
 WeatherWise is a lightweight weather dashboard built using [Streamlit](https://streamlit.io) and the free [Open-Meteo API](https://open-meteo.com/). It lets you view:
