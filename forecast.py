@@ -4,8 +4,6 @@ import argparse
 import requests
 import sys
 from utility import get_coordinates
-import pandas as pd
-import altair as alt 
 
 def get_forecast_weather(lat, lon, days=7):
     url = "https://api.open-meteo.com/v1/forecast"
@@ -40,39 +38,6 @@ def get_forecast_summary(city_name): #Updated to better display in V2
     }
     response = requests.get(url, params=params)
     
-    elif screen == "Forecast":
-    st.title("Forecast Screen")
-
-    summary = forecast.get_forecast_summary("Orem")
-
-    if summary:
-        st.markdown("### 7-Day Forecast for Orem")
-
-        # Convert to DataFrame
-        df = pd.DataFrame(summary)
-
-        # Optionally display raw table
-        st.dataframe(df)
-
-        # Create an Altair chart
-        chart = alt.Chart(df).transform_fold(
-            ['temp_high', 'temp_low'],
-            as_=['Type', 'Temperature']
-        ).mark_line(point=True).encode(
-            x=alt.X('date:T', title="Date"),
-            y=alt.Y('Temperature:Q', title="°F"),
-            color=alt.Color('Type:N', title='Temperature'),
-            tooltip=['date', 'temp_high', 'temp_low', 'description']
-        ).properties(
-            width=600,
-            height=400,
-            title="High & Low Temperatures"
-        )
-
-        st.altair_chart(chart, use_container_width=True)
-    else:
-        st.error("Forecast data not available.")
-
     if response.status_code != 200:
         print(f"Error: {response.status_code}")
         return []
