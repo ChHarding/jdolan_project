@@ -3,7 +3,7 @@
 import argparse
 import requests
 import sys
-from utility import get_coordinates
+from all_operating_files.utility import get_coordinates
 
 def get_forecast_weather(lat, lon, days=7):
     url = "https://api.open-meteo.com/v1/forecast"
@@ -36,9 +36,8 @@ def get_forecast_summary(city_name): #Updated to better display in V2
         "temperature_unit": "fahrenheit",
         "timezone": "auto"
     }
-
     response = requests.get(url, params=params)
-
+    
     if response.status_code != 200:
         print(f"Error: {response.status_code}")
         return []
