@@ -14,18 +14,33 @@ import altair as alt
 # Sidebar navigation
 screen = st.sidebar.radio("Choose a screen:", ["Current Weather", "Forecast", "Historical Data"])
 
+# --- user-entered location (defaults to Orem) -----------
+location_input = st.sidebar.text_input(
+    label="📍 Location (city, state or city, country)",
+    value="Orem, UT"
+).strip()                # <- what we'll use everywhere
+
+from all_operating_files.utility import get_coordinates   # already exists
+
+try:
+    lat, lon, city_display = get_coordinates(location_input)
+except Exception as e:
+    st.error(f"Could not locate **{location_input}** – {e}")
+    st.stop()
+
 # Display content based on selection
 if screen == "Current Weather":
     st.title("Current Weather")
-    st.write("Welcome to the Current Weather screen.")
+    st.subheader(f"Weather for {city_display}")
+
+    now = datetime.now()
 
     # Example coordinates
     latitude = 40.314448
     longitude = -111.718667
 
     #To display the current location, which has been hard coded for me
-    city_name = "Orem, UT"
-    st.subheader(f"Weather for {city_name}")
+    city_name = city_display
 
     # Display current date and time
     now = datetime.now()
@@ -33,7 +48,7 @@ if screen == "Current Weather":
     st.caption(f"Local time: {now.strftime('%I:%M %p')}")
 
     # Get and show current weather (assuming your `weather.get_current_weather` works like this)
-    current = weather.get_current_weather("Orem")  # Replace with actual function if different
+    current = weather.get_current_weather(city_display)   # ← pass city
 
     if current:
         st.markdown("### Current Conditions")
@@ -47,10 +62,7 @@ if screen == "Current Weather":
         st.error("Couldn't fetch current weather data.")
 
     # Create a DataFrame with the coordinates
-    df = pd.DataFrame({
-        'lat': [latitude],
-        'lon': [longitude]
-    })
+    df = pd.DataFrame({'lat': [lat], 'lon': [lon]})
 
     # Display the map
     st.map(df)
@@ -71,11 +83,11 @@ elif screen == "Forecast":
     forecast_data = forecast.get_forecast_weather(latitude, longitude, days=num_days)
 
     # 👇 Display the data
-    st.subheader(f"{num_days}-Day Forecast for Orem")
+    st.subheader(f"{num_days}-Day Forecast for {city_display}")
     for day in forecast_data["time"]:
         st.write(day)  # You can customize this further
     
-    summary = forecast.get_forecast_summary("Orem")
+    summary = forecast.get_forecast_summary(city_display)
 
     if summary:
         st.markdown("### 7-Day Forecast for Orem")
@@ -116,9 +128,14 @@ elif screen == "Historical Data":
 
     num_years = st.slider("Select number of years", min_value=1, max_value=20, value=5)
 
-    city, month, history = weather_history.get_history_summary("Orem", month, num_years)
+    city, month, history = weather_history.get_history_summary(
+        city_display, month, num_years
+    )
 
-    st.subheader(f"Historical Weather for {city} - {month} (Past {num_years} Years)")
+    st.subheader(
+        f"Historical Weather for {city_display} - {month} "
+        f"(Past {num_years} Years)"
+    )
 
     # Transform data to DataFrame
     records = []
