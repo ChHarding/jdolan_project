@@ -3,9 +3,8 @@ import streamlit as st
 import pydeck as pdk
 import pandas as pd
 import requests
-import argparse
-import sys
 from datetime import datetime
+from all_operating_files.utility import get_coordinates
 from all_operating_files import weather
 from all_operating_files import weather_history
 from all_operating_files import forecast
@@ -17,16 +16,17 @@ screen = st.sidebar.radio("Choose a screen:", ["Current Weather", "Forecast", "H
 # --- user-entered location (defaults to Orem) -----------
 location_input = st.sidebar.text_input(
     label="📍 Location (city, state or city, country)",
-    value="Orem, UT"
+    value="Orem"
 ).strip()                # <- what we'll use everywhere
 
-from all_operating_files.utility import get_coordinates   # already exists
+#st.write("🔍 Looking up coordinates for:", location_input)
+coords = get_coordinates(location_input)
+# st.write("📦 Raw result from get_coordinates:", coords)
 
-try:
-    lat, lon, city_display = get_coordinates(location_input)
-except Exception as e:
-    st.error(f"Could not locate **{location_input}** – {e}")
+if not coords or not all(coords):
+    st.error(f"❌ Could not locate **{location_input}** – please try a different city name.")
     st.stop()
+lat, lon, city_display = coords
 
 # Display content based on selection
 if screen == "Current Weather":
@@ -36,11 +36,9 @@ if screen == "Current Weather":
     now = datetime.now()
 
     # Example coordinates
-    latitude = 40.314448
-    longitude = -111.718667
-
-    #To display the current location, which has been hard coded for me
-    city_name = city_display
+    # Use previously defined lat, lon from get_coordinates()
+    latitude = lat
+    longitude = lon
 
     # Display current date and time
     now = datetime.now()
@@ -48,7 +46,7 @@ if screen == "Current Weather":
     st.caption(f"Local time: {now.strftime('%I:%M %p')}")
 
     # Get and show current weather (assuming your `weather.get_current_weather` works like this)
-    current = weather.get_current_weather(city_display)   # ← pass city
+    current = weather.get_current_weather(city_display, lat, lon)
 
     if current:
         st.markdown("### Current Conditions")
@@ -72,45 +70,43 @@ if screen == "Current Weather":
 elif screen == "Forecast":
     st.title("Forecast Screen")
 
-     # 👇 Add a slider for number of forecast days
-    num_days = st.slider("Select number of forecast days", min_value=1, max_value=16, value=7)
+    # 👇 Add a slider for number of forecast days (not implemented in API yet)
+    num_days = st.slider("Select number of forecast days", min_value=1, max_value=10, value=7)
 
-    # Get coordinates (or set city statically if only Orem supported)
-    latitude = 40.2969
-    longitude = -111.6946
+    # Get forecast data
+    forecast_data = forecast.get_forecast_summary(city_display, lat, lon)
 
-    # 👇 Call the API with the number of days
-    forecast_data = forecast.get_forecast_weather(latitude, longitude, days=num_days)
+    if forecast_data:
+        # Show daily data
+        st.subheader(f"{num_days}-Day Forecast for {city_display}")
+        for i in range(min(num_days, len(forecast_data["dates"]))):
+            st.markdown(f"📅 **{forecast_data['dates'][i]}**")
+            st.write(f"🌡️ High: {forecast_data['temp_max'][i]}°F / Low: {forecast_data['temp_min'][i]}°F")
+            st.write(f"🌧️ Precipitation: {forecast_data['precip'][i]} in")
+            st.markdown("---")
 
-    # 👇 Display the data
-    st.subheader(f"{num_days}-Day Forecast for {city_display}")
-    for day in forecast_data["time"]:
-        st.write(day)  # You can customize this further
-    
-    summary = forecast.get_forecast_summary(city_display)
+        # Prepare for chart
+        df = pd.DataFrame({
+            "date": forecast_data["dates"],
+            "temp_high": forecast_data["temp_max"],
+            "temp_low": forecast_data["temp_min"]
+        })
 
-    if summary:
-        st.markdown("### 7-Day Forecast for Orem")
-
-        # Convert to DataFrame
-        df = pd.DataFrame(summary)
-
-        # ✅ Parse date column correctly
         df["date"] = pd.to_datetime(df["date"])
 
-        # Create an Altair chart
+        # Create Altair chart
         chart = alt.Chart(df).transform_fold(
             ['temp_high', 'temp_low'],
             as_=['Type', 'Temperature']
-        ).mark_line(point=True).encode(
+            ).mark_line(point=True).encode(
             x=alt.X('date:T', title="Date"),
             y=alt.Y('Temperature:Q', title="°F"),
-            color=alt.Color('Type:N', title='Temperature'),
-            tooltip=['date', 'temp_high', 'temp_low', 'description']
-        ).properties(
-            width=600,
-            height=400,
-            title="High & Low Temperatures"
+            color=alt.Color('Type:N', title='Temperature Type'),
+            tooltip=[
+            alt.Tooltip('date:T', title='Date'),
+            alt.Tooltip('Type:N', title='Type'),
+            alt.Tooltip('Temperature:Q', title='°F')
+            ]
         )
 
         st.altair_chart(chart, use_container_width=True)
