@@ -19,7 +19,7 @@ location_input = st.sidebar.text_input(
     value="Orem"
 ).strip()                # <- what we'll use everywhere
 
-#st.write("🔍 Looking up coordinates for:", location_input)
+st.write("🔍 Looking up coordinates for:", location_input)
 coords = get_coordinates(location_input)
 # st.write("📦 Raw result from get_coordinates:", coords)
 
