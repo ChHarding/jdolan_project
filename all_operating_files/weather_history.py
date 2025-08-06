@@ -5,7 +5,8 @@ import requests
 import sys
 from datetime import datetime, timedelta
 from statistics import mean
-from utility import get_coordinates
+from calendar import month_name
+from all_operating_files.utility import get_coordinates
 
 def get_month_dates(month_name, year):
     try:
@@ -49,25 +50,31 @@ def summarize_monthly_data(data):
     return {
         "rainy_days": rainy_days,
         "avg_rainfall": avg_rainfall,
-        "temp_range": f"{min_temp}°F – {max_temp}°F"
+        "min_temp": min_temp,  
+        "max_temp": max_temp   
     }
 
-def get_history_summary(location="Orem", month="May", years=3): #New to V2 report A for Streamlit App
-    from utility import get_coordinates
-    from datetime import datetime
+def get_history_summary(city, month, num_years):
+    lat, lon, city_display = get_coordinates(city)
 
-    lat, lon, city_display = get_coordinates(location)
-    current_year = datetime.now().year
+    # 🔁 Convert month name (e.g., "May") to number (e.g., 5)
+    try:
+        month_num = list(month_name).index(month)
+    except ValueError:
+        raise ValueError(f"Invalid month name: {month}")
+
     history = []
+    this_year = datetime.now().year
 
-    for offset in range(years):
-        year = current_year - offset - 1
-        start, end = get_month_dates(month, year)
-        data = get_historical_weather(lat, lon, start, end)
+    for year in range(this_year - num_years, this_year):
+        start_date = f"{year}-{month_num:02d}-01"
+        end_date = f"{year}-{month_num:02d}-28"
+        data = get_historical_weather(lat, lon, start_date, end_date)
         summary = summarize_monthly_data(data)
         history.append((year, summary))
 
     return city_display, month, history
+
 
 def main():
     # --- Production argument parsing (keep for later) ---
